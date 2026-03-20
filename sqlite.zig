@@ -2068,15 +2068,14 @@ pub fn Statement(comptime opts: StatementOptions, comptime query: anytype) type 
 
             inline for (StructTypeInfo.fields, 0..) |struct_field, _i| {
                 const bind_marker = query.bind_markers[_i];
-                if (bind_marker.typed) |typ| {
-                    const FieldTypeInfo = @typeInfo(struct_field.type);
-                    switch (FieldTypeInfo) {
-                        .@"struct", .@"enum", .@"union" => comptime assertMarkerType(
-                            if (@hasDecl(struct_field.type, "BaseType")) struct_field.type.BaseType else struct_field.type,
-                            typ,
-                        ),
-                        else => comptime assertMarkerType(struct_field.type, typ),
-                    }
+                const typ = bind_marker.typed; // TODO tripple check this, it is probably wrong
+                const FieldTypeInfo = @typeInfo(struct_field.type);
+                switch (FieldTypeInfo) {
+                    .@"struct", .@"enum", .@"union" => comptime assertMarkerType(
+                        if (@hasDecl(struct_field.type, "BaseType")) struct_field.type.BaseType else struct_field.type,
+                        typ,
+                    ),
+                    else => comptime assertMarkerType(struct_field.type, typ),
                 }
             }
 
