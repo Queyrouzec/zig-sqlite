@@ -12,7 +12,7 @@ const BindMarker = struct {
     /// at comptime when calling bind on a statement.
     ///
     /// A null means the bind parameter is untyped so there won't be comptime checking.
-    typed: ?type = null,
+    typed: type = void,
 };
 
 fn isNamedIdentifierChar(c: u8) bool {
