@@ -45,18 +45,32 @@ jobs:
         run: |
           sudo apt-get update -y && sudo apt-get install -y qemu-user-binfmt
 
-      - name: Restore cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            zig-cache
-            ~/.cache/zig
-          key: ${{ runner.os }}-${{ matrix.os }}-zig-${{ github.sha }}
-          restore-keys: ${{ runner.os }}-${{ matrix.os }}-zig-
+      - name: Ensure Zig cache dirs exist
+        if: ${{ matrix.os != 'windows-latest' }}
+        run: |
+          mkdir -p .zig-cache
+          mkdir -p .zig-cache/tmp
+          mkdir -p .zig-global-cache
+          mkdir -p .zig-global-cache/tmp
+
+      - name: Ensure Zig cache dirs exist
+        if: ${{ matrix.os == 'windows-latest' }}
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force .zig-cache | Out-Null
+          New-Item -ItemType Directory -Force .zig-cache/tmp | Out-Null
+          New-Item -ItemType Directory -Force .zig-global-cache | Out-Null
+          New-Item -ItemType Directory -Force .zig-global-cache/tmp | Out-Null
 
       - name: Run Tests in memory
         if: ${{ matrix.os == 'ubuntu-24.04' }}
+        env:
+          ZIG_LOCAL_CACHE_DIR: ${{ github.workspace }}/.zig-cache
+          ZIG_GLOBAL_CACHE_DIR: ${{ github.workspace }}/.zig-global-cache
         run: zig build test -Dci=true -Din_memory=true --summary all -fqemu -fwine
       - name: Run Tests in memory
         if: ${{ matrix.os != 'ubuntu-24.04' }}
+        env:
+          ZIG_LOCAL_CACHE_DIR: ${{ github.workspace }}/.zig-cache
+          ZIG_GLOBAL_CACHE_DIR: ${{ github.workspace }}/.zig-global-cache
         run: zig build test -Dci=true -Din_memory=true --summary all

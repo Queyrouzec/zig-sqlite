@@ -32,11 +32,12 @@ pub fn ParsedQuery(comptime tmp_query: []const u8) type {
         const Self = @This();
 
         const result = parse();
+        const exact_query = result.query[0..result.query_len].*;
 
         pub const bind_markers = result.bind_markers[0..result.bind_markers_len];
 
         pub fn getQuery() []const u8 {
-            return Self.result.query[0..Self.result.query_len];
+            return exact_query[0..];
         }
 
         const ParsedQueryResult = struct {
@@ -50,7 +51,7 @@ pub fn ParsedQuery(comptime tmp_query: []const u8) type {
             @setEvalBranchQuota(100000);
             // This contains the final SQL query after parsing with our
             // own typed bind markers removed.
-            var buf: [tmp_query.len]u8 = undefined;
+            var buf: [tmp_query.len]u8 = [_]u8{0} ** tmp_query.len;
             var pos = 0;
             var state = .start;
 
